@@ -90,8 +90,12 @@
         _subtitleLabel.text = _subtitleText;
         [_topButton setTitle:_topButtonText forState:UIControlStateNormal];
         [_bottomButton setTitle:_bottomButtonText forState:UIControlStateNormal];
+    
+        CGFloat buttonsPadding = (self.topButtonText.length == 0 && self.bottomButtonText.length == 0) ? 0 : kDropdownButtonWidth + kDropdownPadding;
         
-        NSInteger textWidth = ([[UIScreen mainScreen] bounds].size.width - kDropdownPadding - kDropdownImageSize - kDropdownPadding - kDropdownPadding - kDropdownButtonWidth - kDropdownPadding);
+        NSInteger textWidth = ([[UIScreen mainScreen] bounds].size.width - kDropdownPadding -
+                               kDropdownImageSize - kDropdownPadding - kDropdownPadding - buttonsPadding);
+        
         NSInteger titleHeight = [_titleLabel.text boundingRectWithSize:CGSizeMake(textWidth, 999) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue-Medium" size:kDropdownTitleFontSize]} context:nil].size.height;
         NSInteger subtitleHeight = [_subtitleLabel.text boundingRectWithSize:CGSizeMake(textWidth, 999) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue" size:kDropdownSubtitleFontSize]} context:nil].size.height;
         NSInteger notificationHeight = (20 + kDropdownPadding + titleHeight + (kDropdownPadding / 2) + subtitleHeight + kDropdownPadding);
@@ -257,6 +261,19 @@
         
         [subiew removeFromSuperview];
     }
+}
+
+- (void)updateImage:(UIImage *)image animated:(BOOL)animated {
+    NSTimeInterval duration = animated ? 0.15 : 0;
+    [UIView animateWithDuration:duration animations:^{
+        self.imageView.alpha = 0;
+    } completion:^(BOOL finished) {
+        self.image = image;
+        self.imageView.image = image;
+        [UIView animateWithDuration:duration animations:^{
+            self.imageView.alpha = 1;
+        }];
+    }];
 }
 
 -(void)listenEventsWithBlock:(block)block {

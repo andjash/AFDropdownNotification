@@ -40,6 +40,8 @@ typedef void (^block)(AFDropdownNotificationEvent event);
 
 @property (nonatomic) BOOL isBeingShown;
 
+- (void)updateImage:(UIImage *)image animated:(BOOL)animated;
+
 -(void)listenEventsWithBlock:(block)block;
 
 -(void)presentInView:(UIView *)view withGravityAnimation:(BOOL)animation;

@@ -100,6 +100,10 @@
         NSInteger subtitleHeight = [_subtitleLabel.text boundingRectWithSize:CGSizeMake(textWidth, 999) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: [UIFont fontWithName:@"HelveticaNeue" size:kDropdownSubtitleFontSize]} context:nil].size.height;
         NSInteger notificationHeight = (20 + kDropdownPadding + titleHeight + (kDropdownPadding / 2) + subtitleHeight + kDropdownPadding);
         
+        if (titleHeight == 0) {
+            notificationHeight -= (kDropdownPadding / 2);
+        }
+        
         if (notificationHeight < 100) {
             
             notificationHeight = 100;
@@ -128,15 +132,20 @@
         
         _titleLabel.frame = CGRectMake(kDropdownPadding + kDropdownImageSize + kDropdownPadding, 20 + kDropdownPadding, textWidth, titleHeight);
         
+        CGRect subtitleFrame = CGRectMake(kDropdownPadding + kDropdownImageSize + kDropdownPadding, _titleLabel.frame.origin.y + _titleLabel.frame.size.height + 3, textWidth, subtitleHeight);
+        
         if (_titleText) {
             [_notificationView addSubview:_titleLabel];
+        } else {
+            subtitleFrame.origin.y = _titleLabel.frame.origin.y;
+            subtitleFrame.size.height = notificationHeight - (20 + kDropdownPadding * 2);
         }
         
-        _subtitleLabel.frame = CGRectMake(kDropdownPadding + kDropdownImageSize + kDropdownPadding, _titleLabel.frame.origin.y + _titleLabel.frame.size.height + 3, textWidth, subtitleHeight);
         
         if (_subtitleText) {
             [_notificationView addSubview:_subtitleLabel];
         }
+        _subtitleLabel.frame = subtitleFrame;
         
         _topButton.frame = CGRectMake(_titleLabel.frame.origin.x + _titleLabel.frame.size.width + kDropdownPadding, 20 + (kDropdownPadding / 2), kDropdownButtonWidth, kDropdownButtonHeight);
         [_topButton addTarget:self action:@selector(topButtonTapped) forControlEvents:UIControlEventTouchUpInside];

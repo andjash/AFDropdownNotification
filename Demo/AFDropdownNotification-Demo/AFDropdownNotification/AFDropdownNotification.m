@@ -19,15 +19,17 @@
 
 @property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) UILabel *subtitleLabel;
-@property (nonatomic, strong) UIImageView *imageView;
+
 @property (nonatomic, strong) UIButton *topButton;
 @property (nonatomic, strong) UIButton *bottomButton;
+@property (nonatomic, strong) UIButton *centralButton;
 
 @property (nonatomic) CGSize screenSize;
 @property (nonatomic, strong) UIDynamicAnimator *animator;
 @property (nonatomic) BOOL gravityAnimation;
 
 @property (nonatomic, copy) block internalBlock;
+@property (nonatomic, assign) UIStatusBarStyle prevStatusbarStyle;
 
 @end
 
@@ -65,6 +67,10 @@
         [_topButton.layer setBorderColor:[[UIColor grayColor] CGColor]];
         [_topButton.layer setMasksToBounds:YES];
         
+        
+        _centralButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _centralButton.imageView.contentMode = UIViewContentModeCenter;
+        
         _bottomButton = [UIButton buttonWithType:UIButtonTypeCustom];
         _bottomButton.titleLabel.font = [UIFont fontWithName:@"HelveticaNeue-Medium" size:13];
         [_bottomButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -91,7 +97,13 @@
         [_topButton setTitle:_topButtonText forState:UIControlStateNormal];
         [_bottomButton setTitle:_bottomButtonText forState:UIControlStateNormal];
     
-        CGFloat buttonsPadding = (self.topButtonText.length == 0 && self.bottomButtonText.length == 0) ? 0 : kDropdownButtonWidth + kDropdownPadding;
+        
+        if (self.textColor) {
+            _titleLabel.textColor =
+            _subtitleLabel.textColor = self.textColor;
+        }
+        
+        CGFloat buttonsPadding = (self.topButtonText.length == 0 && self.bottomButtonText.length == 0 && self.centralButtonImage == nil) ? 0 : kDropdownButtonWidth + kDropdownPadding;
         
         NSInteger textWidth = ([[UIScreen mainScreen] bounds].size.width - kDropdownPadding -
                                kDropdownImageSize - kDropdownPadding - kDropdownPadding - buttonsPadding);
@@ -115,14 +127,20 @@
         [[[UIApplication sharedApplication] keyWindow] addSubview:_notificationView];
         [[[UIApplication sharedApplication] keyWindow] bringSubviewToFront:_notificationView];
         
-        if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1) {
-            UIVisualEffect *visualEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
-            UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:visualEffect];
-            blurView.frame = _notificationView.bounds;
-            [_notificationView addSubview:blurView];
+        if (self.dropdownBackgroundColor) {
+            _notificationView.backgroundColor = self.dropdownBackgroundColor;
         } else {
-            _notificationView.backgroundColor = [UIColor whiteColor];
+            if (NSFoundationVersionNumber > NSFoundationVersionNumber_iOS_7_1) {
+                UIVisualEffect *visualEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleLight];
+                UIVisualEffectView *blurView = [[UIVisualEffectView alloc] initWithEffect:visualEffect];
+                blurView.frame = _notificationView.bounds;
+                [_notificationView addSubview:blurView];
+            } else {
+                _notificationView.backgroundColor = [UIColor whiteColor];
+            }
         }
+        
+        
         
         _imageView.frame = CGRectMake(kDropdownPadding, (notificationHeight / 2) - (kDropdownImageSize / 2) + (20 / 2), kDropdownImageSize, kDropdownImageSize);
         
@@ -156,6 +174,15 @@
         
         _bottomButton.frame = CGRectMake(_titleLabel.frame.origin.x + _titleLabel.frame.size.width + kDropdownPadding, _topButton.frame.origin.y + _topButton.frame.size.height + 6, kDropdownButtonWidth, kDropdownButtonHeight);
         [_bottomButton addTarget:self action:@selector(bottomButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+        
+        
+        if (self.centralButtonImage) {
+            [_notificationView addSubview:_centralButton];
+            [_centralButton setImage:self.centralButtonImage forState:UIControlStateNormal];
+            _centralButton.frame = CGRectMake(_titleLabel.frame.origin.x + _titleLabel.frame.size.width + kDropdownPadding, 20 + (kDropdownPadding / 2), kDropdownButtonWidth, kDropdownButtonHeight * 2 + 6);
+            [_centralButton addTarget:self action:@selector(centralButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+            
+        }
         
         if (_bottomButtonText) {
             [_notificationView addSubview:_bottomButton];
@@ -195,29 +222,36 @@
         _gravityAnimation = animation;
     }
     
+    
+    if (self.forceStatusbarStyleUpdate) {
+        self.prevStatusbarStyle = [UIApplication sharedApplication].statusBarStyle;
+        [[UIApplication sharedApplication] setStatusBarStyle:self.forceStatusbarStyle animated:YES];
+    }
+    
     _internalBlock = ^(AFDropdownNotificationEvent event) {
         
     };
 }
 
 -(void)topButtonTapped {
-    
     [self.notificationDelegate dropdownNotificationTopButtonTapped];
-    
     if (_internalBlock) {
-        
         _internalBlock(AFDropdownNotificationEventTopButton);
     }
 }
 
 -(void)bottomButtonTapped {
-    
     [self.notificationDelegate dropdownNotificationBottomButtonTapped];
-    
-//    if (_internalBlock) {
-    
+    if (_internalBlock) {
         _internalBlock(AFDropdownNotificationEventBottomButton);
-//    }
+    }
+}
+
+- (void)centralButtonTapped {
+    [self.notificationDelegate dropdownNotificationBottomButtonTapped];
+    if (_internalBlock) {
+        _internalBlock(AFDropdownNotificationEventCentralButton);
+    }
 }
 
 -(void)dismiss:(id)sender {
@@ -234,6 +268,10 @@
 }
 
 -(void)dismissWithGravityAnimation:(BOOL)animation {
+    
+    if (self.forceStatusbarStyleUpdate) {
+        [[UIApplication sharedApplication] setStatusBarStyle:self.prevStatusbarStyle animated:animation];
+    }
     
     if (animation) {
         

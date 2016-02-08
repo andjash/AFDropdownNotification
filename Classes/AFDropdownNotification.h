@@ -22,6 +22,7 @@
 typedef NS_ENUM(NSInteger, AFDropdownNotificationEvent) {
     
     AFDropdownNotificationEventTopButton,
+    AFDropdownNotificationEventCentralButton,
     AFDropdownNotificationEventBottomButton,
     AFDropdownNotificationEventTap
 };
@@ -37,10 +38,18 @@ typedef void (^block)(AFDropdownNotificationEvent event);
 @property (nonatomic, strong) UIImage *image;
 @property (nonatomic, strong) NSString *topButtonText;
 @property (nonatomic, strong) NSString *bottomButtonText;
+@property (nonatomic, strong) UIColor *dropdownBackgroundColor;
+@property (nonatomic, strong) UIColor *textColor;
+@property (nonatomic, strong) UIImage *centralButtonImage;
+@property (nonatomic, strong) UIImageView *imageView;
+
+@property (nonatomic, assign) BOOL forceStatusbarStyleUpdate;
+@property (nonatomic, assign) UIStatusBarStyle forceStatusbarStyle;
 
 @property (nonatomic) BOOL isBeingShown;
 
 - (void)updateImage:(UIImage *)image animated:(BOOL)animated;
+
 -(void)listenEventsWithBlock:(block)block;
 
 -(void)presentInView:(UIView *)view withGravityAnimation:(BOOL)animation;
